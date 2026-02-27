@@ -1,119 +1,105 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Stock SAP</title>
+    <title>Dashboard - Stock SAP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
+<body>
 
-<body class="container mt-4">
+<div class="container container-dashboard">
 
-<h2 class="mb-4">Panel de Stock</h2>
+    <h2 class="mb-4">Dashboard de Stock</h2>
 
-<!-- 🔵 CARDS RESUMEN -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-bg-primary shadow">
-            <div class="card-body">
-                <h6>Total Materiales</h6>
-                <h3 th:text="${#lists.size(stocks)}"></h3>
+    <!-- CARDS RESUMEN -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card-widget card-primary">
+                <i class="bi bi-box-seam icon"></i>
+                <div>
+                    <h6>Total Materiales</h6>
+                    <h3 th:text="${totalMateriales}"></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-widget card-danger">
+                <i class="bi bi-exclamation-triangle icon"></i>
+                <div>
+                    <h6>Materiales Bajo Mínimo</h6>
+                    <h3 th:text="${totalAlertas}"></h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-widget card-success">
+                <i class="bi bi-currency-dollar icon"></i>
+                <div>
+                    <h6>Valor Total Inventario</h6>
+                    <h5 th:text="${valorTotalInventario}"></h5>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-bg-danger shadow">
-            <div class="card-body">
-                <h6>Materiales Bajo Mínimo</h6>
-                <h3 th:text="${#lists.size(stocks.?[stockMinimo != null and stockLibre < stockMinimo])}"></h3>
-            </div>
+    <!-- FILTROS -->
+    <form method="get" th:action="@{/}" class="row g-3 mb-4 filters">
+        <div class="col-md-3">
+            <input type="text" name="centro" class="form-control" placeholder="Área (Ej: IN01)" th:value="${centroSeleccionado}">
         </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-bg-success shadow">
-            <div class="card-body">
-                <h6>Valor Total Inventario</h6>
-                <h5 th:text="${#aggregates.sum(stocks.![valorTotal])}"></h5>
-            </div>
+        <div class="col-md-3">
+            <input type="text" name="almacen" class="form-control" placeholder="Almacén (Ej: 1014)" th:value="${almacenSeleccionado}">
         </div>
-    </div>
-</div>
-
-<!-- 🟢 FILTROS -->
-<form method="get"
-      th:action="@{${modo == 'alertas'} ? '/alertas' : '/'}"
-      class="row g-3 mb-4">
-
-    <div class="col-md-3">
-        <label class="form-label">Centro</label>
-        <input type="text"
-               name="centro"
-               class="form-control"
-               placeholder="Ej: IN01"
-               th:value="${centroSeleccionado}">
-    </div>
-
-    <div class="col-md-3">
-        <label class="form-label">Almacén</label>
-        <input type="text"
-               name="almacen"
-               class="form-control"
-               placeholder="Ej: 1014"
-               th:value="${almacenSeleccionado}">
-    </div>
-
-    <div class="col-md-3 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary me-2">
-            Filtrar
-        </button>
-
-        <a th:href="@{/alertas}" class="btn btn-danger">
-            Ver Alertas
-        </a>
-    </div>
-</form>
-
-<!-- 🔍 BUSCADOR EN VIVO -->
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">Filtrar</button>
+            <a th:href="@{/alertas}" class="btn btn-danger flex-fill">Ver Alertas</a>
+        </div>
+    </form>
+    
+    <!-- 🔍 BUSCADOR EN VIVO -->
 <div class="mb-3">
     <input type="text" id="buscador"
            class="form-control"
            placeholder="Buscar material o descripción...">
 </div>
 
-<!-- 📊 TABLA -->
-<table class="table table-bordered table-hover">
-    <thead class="table-dark">
-    <tr>
-        <th>Material</th>
-        <th>Descripción</th>
-        <th>Centro</th>
-        <th>Almacén</th>
-        <th>Stock</th>
-        <th>Mínimo</th>
-        <th>Valor Total</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    <tr th:each="item : ${stocks}"
-        th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
-
-        <td th:text="${item.matnr}"></td>
-        <td th:text="${item.descripcion}"></td>
-        <td th:text="${item.centro}"></td>
-        <td th:text="${item.almacen}"></td>
-        <td th:text="${item.stockLibre}"></td>
-        <td th:text="${item.stockMinimo}"></td>
-        <td th:text="${item.valorTotal}"></td>
-    </tr>
-    </tbody>
-
-    <nav class="mt-3">
+    <!-- TABLA -->
+    <div class="table-responsive">
+        <table class="table table-modern table-hover">
+            <thead>
+            <tr>
+                <th>Material</th>
+                <th>Descripción</th>
+                <th>Centro</th>
+                <th>Almacén</th>
+                <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Valor Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${stocks}" th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
+                <td th:text="${item.matnr}"></td>
+                <td th:text="${item.descripcion}"></td>
+                <td th:text="${item.centro}"></td>
+                <td th:text="${item.almacen}"></td>
+                <td th:text="${item.stockLibre}"></td>
+                <td th:text="${item.stockMinimo}"></td>
+                <td th:text="${item.valorTotal}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- PAGINACIÓN -->
+<nav class="mt-3" th:if="${totalPaginas > 1}">
     <ul class="pagination justify-content-center">
 
         <!-- Anterior -->
-        <li class="page-item"
-            th:classappend="${paginaActual == 0} ? 'disabled'">
+        <li class="page-item" th:classappend="${paginaActual == 0} ? 'disabled'">
             <a class="page-link"
                th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
                (pagina=${paginaActual - 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
@@ -121,51 +107,49 @@
             </a>
         </li>
 
-            <!-- Primera página -->
-    <li class="page-item" th:if="${paginaActual > 2}">
-        <a class="page-link"
-        th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
-        (pagina=0, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-            1
-        </a>
-    </li>
+        <!-- Primera página -->
+        <li class="page-item" th:if="${paginaActual > 2}">
+            <a class="page-link"
+               th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
+               (pagina=0, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
+                1
+            </a>
+        </li>
 
-    <li class="page-item disabled" th:if="${paginaActual > 3}">
-        <span class="page-link">...</span>
-    </li>
+        <!-- Separador inicial -->
+        <li class="page-item disabled" th:if="${paginaActual > 3}">
+            <span class="page-link">...</span>
+        </li>
 
-    <!-- Ventana alrededor de la actual -->
-    <li class="page-item"
-        th:each="i : ${#numbers.sequence(
-            paginaActual - 2 > 0 ? paginaActual - 2 : 0,
-            paginaActual + 2 < totalPaginas - 1 ? paginaActual + 2 : totalPaginas - 1)}"
-        th:classappend="${i == paginaActual} ? 'active'">
+        <!-- Ventana alrededor de la página actual -->
+        <li class="page-item"
+            th:each="i : ${#numbers.sequence(
+                paginaActual - 2 > 0 ? paginaActual - 2 : 0,
+                paginaActual + 2 < totalPaginas - 1 ? paginaActual + 2 : totalPaginas - 1)}"
+            th:classappend="${i == paginaActual} ? 'active'">
+            <a class="page-link"
+               th:text="${i + 1}"
+               th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
+               (pagina=${i}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
+            </a>
+        </li>
 
-        <a class="page-link"
-        th:text="${i + 1}"
-        th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
-        (pagina=${i}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-        </a>
-    </li>
+        <!-- Separador final -->
+        <li class="page-item disabled" th:if="${paginaActual < totalPaginas - 4}">
+            <span class="page-link">...</span>
+        </li>
 
-    <li class="page-item disabled"
-        th:if="${paginaActual < totalPaginas - 4}">
-        <span class="page-link">...</span>
-    </li>
-
-    <!-- Última página -->
-    <li class="page-item"
-        th:if="${paginaActual < totalPaginas - 3}">
-        <a class="page-link"
-        th:text="${totalPaginas}"
-        th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
-        (pagina=${totalPaginas - 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-        </a>
-    </li>
+        <!-- Última página -->
+        <li class="page-item" th:if="${paginaActual < totalPaginas - 3}">
+            <a class="page-link"
+               th:text="${totalPaginas}"
+               th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
+               (pagina=${totalPaginas - 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
+            </a>
+        </li>
 
         <!-- Siguiente -->
-        <li class="page-item"
-            th:classappend="${paginaActual == totalPaginas - 1} ? 'disabled'">
+        <li class="page-item" th:classappend="${paginaActual == totalPaginas - 1} ? 'disabled'">
             <a class="page-link"
                th:href="@{${modo == 'alertas'} ? '/alertas' : '/' 
                (pagina=${paginaActual + 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
@@ -176,16 +160,7 @@
     </ul>
 </nav>
 
-    <!-- 🔢 TOTAL FOOTER -->
-    <tfoot>
-    <tr class="table-secondary">
-        <td colspan="6" class="text-end"><strong>Total Valorizado:</strong></td>
-        <td th:text="${#aggregates.sum(stocks.![valorTotal])}"></td>
-    </tr>
-    </tfoot>
-
-</table>
-
+</div>
 <!-- 🔎 SCRIPT BUSCADOR -->
 <script>
     document.getElementById("buscador").addEventListener("keyup", function () {

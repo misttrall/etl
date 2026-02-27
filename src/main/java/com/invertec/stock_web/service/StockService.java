@@ -78,6 +78,11 @@ public class StockService {
         return repository.contarStockBajo(centro, almacen);
     }
 
+    public BigDecimal obtenerValorTotalAlertas(String centro, String almacen) {
+        BigDecimal total = repository.sumarValorTotalAlertas(centro, almacen);
+        return total != null ? total : BigDecimal.ZERO;
+    }
+    
     public BigDecimal obtenerValorTotalInventario(
             String centro,
             String almacen) {

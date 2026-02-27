@@ -1,0 +1,122 @@
+/* Estilo base */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+.container-dashboard {
+    padding: 40px 20px;
+}
+
+/* Cards resumen */
+.card-widget {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.card-widget:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.card-widget .icon {
+    font-size: 2.5rem;
+}
+
+/* Colores específicos de cards */
+.card-widget.card-primary { background-color: #4f46e5 !important; color: white; }
+.card-widget.card-danger { background-color: #ef4444 !important; color: white; }
+.card-widget.card-success { background-color: #22c55e !important; color: white; }
+
+/* Tabla moderna */
+table.table-modern {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+table.table-modern thead {
+    background-color: #4f46e5;
+    color: #fff;
+}
+
+table.table-modern tbody tr:hover {
+    background-color: #f0f0f5;
+}
+
+table.table-modern tbody tr.table-danger {
+    background-color: #fee2e2 !important;
+}
+
+/* Filtros */
+.filters input {
+    border-radius: 10px;
+}
+
+.filters button {
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.filters button:hover {
+    transform: translateY(-2px);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Titulos */
+h2, h3 {
+    font-weight: 600;
+}
+
+/* Paginación moderna */
+.pagination-modern {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+.pagination-modern li {
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pagination-modern li a,
+.pagination-modern li span {
+    display: block;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: #4f46e5;
+    background: #f4f6f8;
+    border-radius: 8px;
+}
+
+.pagination-modern li a:hover {
+    background-color: #e0e7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pagination-modern li.active a {
+    background-color: #4f46e5;
+    color: #fff;
+    font-weight: 600;
+}
+
+.pagination-modern li.disabled span {
+    color: #c0c0c0;
+    cursor: not-allowed;
+}

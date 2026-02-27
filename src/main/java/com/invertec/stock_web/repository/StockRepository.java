@@ -245,6 +245,39 @@ public List<StockDTO> obtenerStockBajoFiltrado(
 
         return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), Integer.class);
     }
+
+        /**
+     * Suma el valor total de los productos que están bajo stock mínimo,
+     * filtrando por centro y almacén si se proporcionan.
+     *
+     * @param centro  filtro por centro (opcional)
+     * @param almacen filtro por almacén (opcional)
+     * @return suma de ValorTotal de productos bajo stock mínimo
+     */
+    public BigDecimal sumarValorTotalAlertas(String centro, String almacen) {
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT SUM(ValorTotal)
+                FROM vw_stock_area_final
+                WHERE stock_minimo IS NOT NULL
+                AND StockLibre < stock_minimo
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (centro != null && !centro.isEmpty()) {
+            sql.append(" AND Centro = ?");
+            params.add(centro);
+        }
+
+        if (almacen != null && !almacen.isEmpty()) {
+            sql.append(" AND Almacen = ?");
+            params.add(almacen);
+        }
+        BigDecimal total = jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
+        return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
+    }
+
     public BigDecimal sumarValorTotal(String centro, String almacen) {
 
     StringBuilder sql = new StringBuilder("""
