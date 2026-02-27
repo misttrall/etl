@@ -277,7 +277,20 @@ public List<StockDTO> obtenerStockBajoFiltrado(
         BigDecimal total = jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
         return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
     }
+    public void guardarStockMinimo(String material,
+                                String centro,
+                                String almacen,
+                                BigDecimal stockMinimo,
+                                String usuario) {
 
+        String sql = """
+            INSERT INTO dbo.stock_minimo_historial
+            (material, centro, almacen, stock_minimo, usuario, fecha_modificacion)
+            VALUES (?, ?, ?, ?, ?, GETDATE())
+            """;
+
+        jdbcTemplate.update(sql,material,centro,almacen,stockMinimo,usuario);
+    }
     public BigDecimal sumarValorTotal(String centro, String almacen) {
 
     StringBuilder sql = new StringBuilder("""

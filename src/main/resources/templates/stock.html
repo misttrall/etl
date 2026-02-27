@@ -68,32 +68,64 @@
 </div>
 
     <!-- TABLA -->
-    <div class="table-responsive">
-        <table class="table table-modern table-hover">
-            <thead>
-            <tr>
-                <th>Material</th>
-                <th>Descripción</th>
-                <th>Centro</th>
-                <th>Almacén</th>
-                <th>Stock</th>
-                <th>Mínimo</th>
-                <th>Valor Total</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="item : ${stocks}" th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
-                <td th:text="${item.matnr}"></td>
-                <td th:text="${item.descripcion}"></td>
-                <td th:text="${item.centro}"></td>
-                <td th:text="${item.almacen}"></td>
-                <td th:text="${item.stockLibre}"></td>
-                <td th:text="${item.stockMinimo}"></td>
-                <td th:text="${item.valorTotal}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+<div class="table-responsive">
+    <table class="table table-modern table-hover">
+        <thead>
+        <tr>
+            <th>Material</th>
+            <th>Descripción</th>
+            <th>Centro</th>
+            <th>Almacén</th>
+            <th>Stock</th>
+            <th>Mínimo</th>
+            <th>Valor Total</th>
+            <th>Acción</th>
+        </tr>
+        </thead>
+        <tbody id="tabla-stock">
+        <tr th:each="item : ${stocks}"
+            th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
+
+            <td th:text="${item.matnr}"></td>
+            <td th:text="${item.descripcion}"></td>
+            <td th:text="${item.centro}"></td>
+            <td th:text="${item.almacen}"></td>
+            <td th:text="${item.stockLibre}"></td>
+
+            <!-- MÍNIMO EDITABLE -->
+            <td>
+                <form th:action="@{/stock/minimo}" 
+                      method="post"
+                      class="d-flex gap-2 align-items-center">
+
+                    <input type="hidden" name="material" th:value="${item.matnr}">
+                    <input type="hidden" name="centro" th:value="${item.centro}">
+                    <input type="hidden" name="almacen" th:value="${item.almacen}">
+
+                    <input type="number"
+                           name="stockMinimo"
+                           step="0.01"
+                           min="0"
+                           class="form-control form-control-sm"
+                           style="width: 100px;"
+                           th:value="${item.stockMinimo}">
+            </td>
+
+            <td th:text="${item.valorTotal}"></td>
+
+            <!-- BOTÓN -->
+            <td>
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-primary">
+                        Guardar
+                    </button>
+                </form>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+</div>
     <!-- PAGINACIÓN -->
 <nav class="mt-3" th:if="${totalPaginas > 1}">
     <ul class="pagination justify-content-center">
@@ -171,6 +203,6 @@
         });
     });
 </script>
-
+<script th:src="@{/js/stock.js}"></script>
 </body>
 </html>

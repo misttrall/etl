@@ -2,13 +2,17 @@ package com.invertec.stock_web.controller;
 
 import com.invertec.stock_web.service.StockService;
 
+import java.math.BigDecimal;
+import java.security.Principal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class StockController {
@@ -46,4 +50,40 @@ public class StockController {
 
         return "stock";
     }
+    
+    @PostMapping("/stock/minimo")
+public String actualizarStockMinimo(
+        @RequestParam String material,
+        @RequestParam String centro,
+        @RequestParam String almacen,
+        @RequestParam BigDecimal stockMinimo,
+        Principal principal,
+        RedirectAttributes redirectAttributes) {
+
+    try {
+
+        String usuario = principal != null
+                ? principal.getName()
+                : "sistema";
+
+        service.actualizarStockMinimo(
+                material,
+                centro,
+                almacen,
+                stockMinimo,
+                usuario);
+
+        redirectAttributes.addFlashAttribute(
+                "success",
+                "Stock mínimo actualizado correctamente.");
+
+    } catch (Exception e) {
+
+        redirectAttributes.addFlashAttribute(
+                "error",
+                "Error al actualizar el stock mínimo.");
+    }
+
+    return "redirect:/";
+}
 }

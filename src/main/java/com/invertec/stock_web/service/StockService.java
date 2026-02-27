@@ -101,4 +101,21 @@ public class StockService {
         }
         return valor.trim();
     }
+    public void actualizarStockMinimo(String material,
+                                   String centro,
+                                   String almacen,
+                                   BigDecimal stockMinimo,
+                                   String usuario) {
+
+    if (stockMinimo == null || stockMinimo.compareTo(BigDecimal.ZERO) < 0) {
+        throw new IllegalArgumentException("Stock mínimo inválido");
+    }
+
+    repository.guardarStockMinimo(
+            material,
+            centro,
+            almacen,
+            stockMinimo,
+            usuario);
+}
 }
