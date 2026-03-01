@@ -1,5 +1,5 @@
 package com.invertec.stock_web.service;
-
+import com.invertec.stock_web.repository.IStockRepository;
 import com.invertec.stock_web.model.StockDTO;
 import com.invertec.stock_web.repository.StockRepository;
 import org.springframework.stereotype.Service;
@@ -12,11 +12,12 @@ import java.util.Map;
 @Service
 public class StockService {
 
-    private final StockRepository repository;
+    private final IStockRepository repository;
 
-    public StockService(StockRepository repository) {
+    public StockService(IStockRepository repository) {
         this.repository = repository;
     }
+
 
     public Map<String, Object> obtenerPaginado(
             String centro,
