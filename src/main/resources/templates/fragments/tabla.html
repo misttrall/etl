@@ -1,0 +1,30 @@
+<div th:fragment="tablaFragment">
+
+    <div class="table-responsive">
+        <table class="table table-modern table-hover">
+            <thead>
+            <tr>
+                <th>Material</th>
+                <th>Descripción</th>
+                <th>Centro</th>
+                <th>Almacén</th>
+                <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Valor Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${stocks}">
+                <td th:text="${item.matnr}"></td>
+                <td th:text="${item.descripcion}"></td>
+                <td th:text="${item.centro}"></td>
+                <td th:text="${item.almacen}"></td>
+                <td th:text="${item.stockLibre}"></td>
+                <td th:text="${item.stockMinimo}"></td>
+                <td th:text="${item.valorTotal}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>

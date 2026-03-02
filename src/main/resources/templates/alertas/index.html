@@ -13,8 +13,8 @@
 
     <h2 class="mb-4">Materiales Bajo Stock</h2>
 
-    <!-- CARDS RESUMEN -->
     <div class="row g-3 mb-4">
+
         <div class="col-md-4">
             <div class="card-widget card-danger">
                 <i class="bi bi-exclamation-triangle icon"></i>
@@ -29,30 +29,63 @@
             <div class="card-widget card-success">
                 <i class="bi bi-currency-dollar icon"></i>
                 <div>
-                    <h6>Valor Total Inventario</h6>
+                    <h6>Valor Total Alertas</h6>
                     <h5 th:text="${valorTotalAlertas}"></h5>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <!-- FILTROS -->
+    <div class="d-flex gap-3 mb-4">
+        <a th:href="@{/}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Volver al Dashboard
+        </a>
+
+        <a th:href="@{/alertas}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-clockwise"></i>
+            Sincronizar Tabla
+        </a>
+    </div>
+
     <form method="get" th:action="@{/alertas}" class="row g-3 mb-4 filters">
+
         <div class="col-md-3">
-            <input type="text" name="centro" class="form-control" placeholder="Área (Ej: IN01)" th:value="${centroSeleccionado}">
+            <input type="text"
+                   name="centro"
+                   class="form-control"
+                   placeholder="Área (Ej: IN01)"
+                   th:value="${centroSeleccionado}">
         </div>
+
         <div class="col-md-3">
-            <input type="text" name="almacen" class="form-control" placeholder="Almacén (Ej: 1014)" th:value="${almacenSeleccionado}">
+            <input type="text"
+                   name="almacen"
+                   class="form-control"
+                   placeholder="Almacén (Ej: 1014)"
+                   th:value="${almacenSeleccionado}">
         </div>
+
         <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary flex-fill">Filtrar</button>
-            <a th:href="@{/}" class="btn btn-secondary flex-fill">Volver al Dashboard</a>
+            <button type="submit" class="btn btn-primary flex-fill">
+                Filtrar
+            </button>
         </div>
+        <div class="col-md-3">
+            <input type="text"
+                   name="buscar"
+                   id="buscador"
+                   class="form-control"
+                   placeholder="Buscar material o descripción"
+                   th:value="${buscar}">
+        </div>
+
     </form>
 
-    <!-- TABLA -->
     <div class="table-responsive">
         <table class="table table-modern table-hover">
+
             <thead>
             <tr>
                 <th>Material</th>
@@ -64,8 +97,12 @@
                 <th>Valor Total</th>
             </tr>
             </thead>
+
             <tbody>
-            <tr th:each="item : ${stocks}" th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
+
+            <tr th:each="item : ${stocks}"
+                th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
+
                 <td th:text="${item.matnr}"></td>
                 <td th:text="${item.descripcion}"></td>
                 <td th:text="${item.centro}"></td>
@@ -73,12 +110,23 @@
                 <td th:text="${item.stockLibre}"></td>
                 <td th:text="${item.stockMinimo}"></td>
                 <td th:text="${item.valorTotal}"></td>
+
             </tr>
+
             </tbody>
         </table>
     </div>
 
 </div>
-
+<!-- 🔎 SCRIPT BUSCADOR -->
+<script>
+    document.getElementById("buscador").addEventListener("keyup", function () {
+        let filtro = this.value.toLowerCase();
+        document.querySelectorAll("tbody tr").forEach(row => {
+            row.style.display =
+                row.innerText.toLowerCase().includes(filtro) ? "" : "none";
+        });
+    });
+</script>
 </body>
 </html>

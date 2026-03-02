@@ -18,21 +18,12 @@ public class StockService {
         this.repository = repository;
     }
 
-    public Map<String, Object> obtenerPaginado(
-            String centro,
-            String almacen,
-            String buscar,
-            int pagina,
-            int size) {
-
-        centro = limpiar(centro);
-        almacen = limpiar(almacen);
+    // ------------------- PAGINADO -------------------
+    public Map<String, Object> obtenerPaginado(String buscar, int pagina, int size) {
         buscar = limpiar(buscar);
 
-        List<StockDTO> lista =
-                repository.obtenerFiltradoPaginado(centro, almacen, buscar, pagina, size);
-
-        int total = repository.contar(centro, almacen, buscar);
+        List<StockDTO> lista = repository.obtenerFiltradoPaginadoDashboard(buscar, pagina, size);
+        int total = repository.contarDashboard(buscar);
         int totalPaginas = (int) Math.ceil((double) total / size);
 
         Map<String, Object> data = new HashMap<>();
@@ -40,82 +31,56 @@ public class StockService {
         data.put("paginaActual", pagina);
         data.put("totalPaginas", totalPaginas);
         data.put("buscar", buscar);
-        data.put("centroSeleccionado", centro);
-        data.put("almacenSeleccionado", almacen);
 
         return data;
     }
 
-    public List<StockDTO> obtenerStockBajoFiltrado(
-            String centro,
-            String almacen) {
-
-        centro = limpiar(centro);
-        almacen = limpiar(almacen);
-
-        return repository.obtenerStockBajoFiltrado(centro, almacen);
-    }
-
-    public int contarTotal(
-            String centro,
-            String almacen,
-            String buscar) {
-
-        centro = limpiar(centro);
-        almacen = limpiar(almacen);
+    public List<StockDTO> buscarTodos(String buscar) {
         buscar = limpiar(buscar);
-
-        return repository.contar(centro, almacen, buscar);
+        return repository.obtenerFiltradoDashboard(buscar);
     }
 
-    public int contarTotalAlertas(
-            String centro,
-            String almacen) {
-
-        centro = limpiar(centro);
-        almacen = limpiar(almacen);
-
-        return repository.contarStockBajo(centro, almacen);
+    // ------------------- ALERTAS -------------------
+    public List<StockDTO> obtenerStockBajo() {
+        return repository.obtenerStockBajoDashboard();
     }
 
-    public BigDecimal obtenerValorTotalAlertas(String centro, String almacen) {
-        BigDecimal total = repository.sumarValorTotalAlertas(centro, almacen);
-        return total != null ? total : BigDecimal.ZERO;
+    public List<StockDTO> obtenerStockBajoPaginado(int pagina, int size) {
+        return repository.obtenerStockBajoPaginadoDashboard(pagina, size);
     }
-    
-    public BigDecimal obtenerValorTotalInventario(
-            String centro,
-            String almacen) {
 
-        centro = limpiar(centro);
-        almacen = limpiar(almacen);
+    public int contarTotalAlertas() {
+        return repository.contarStockBajoDashboard();
+    }
 
-        BigDecimal total = repository.sumarValorTotal(centro, almacen);
-
+    public BigDecimal obtenerValorTotalAlertas() {
+        BigDecimal total = repository.sumarValorTotalAlertasDashboard();
         return total != null ? total : BigDecimal.ZERO;
     }
 
-    private String limpiar(String valor) {
-        if (valor == null || valor.isBlank()) {
-            return null;
+    public BigDecimal obtenerValorTotalInventario() {
+        BigDecimal total = repository.sumarValorTotalDashboard();
+        return total != null ? total : BigDecimal.ZERO;
+    }
+
+    // ------------------- STOCK MINIMO -------------------
+    public void actualizarStockMinimo(String material, BigDecimal stockMinimo, String usuario) {
+        if (stockMinimo == null || stockMinimo.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Stock mínimo inválido");
         }
+        repository.guardarStockMinimo(material, stockMinimo, usuario);
+    }
+
+    // ------------------- AUTOCOMPLETE -------------------
+    public List<Map<String, Object>> buscarCoincidenciasRapidas(String buscar) {
+        buscar = limpiar(buscar);
+        if (buscar == null || buscar.isBlank()) return List.of();
+        return repository.buscarCoincidenciasRapidas("IN01", "1014", buscar, 10);
+    }
+
+    // ------------------- UTIL -------------------
+    private String limpiar(String valor) {
+        if (valor == null || valor.isBlank()) return null;
         return valor.trim();
     }
-    public void actualizarStockMinimo(String material,
-                                   String centro,
-                                   String almacen,
-                                   BigDecimal stockMinimo,
-                                   String usuario) {
-
-    if (stockMinimo == null || stockMinimo.compareTo(BigDecimal.ZERO) < 0) {
-        throw new IllegalArgumentException("Stock mínimo inválido");
-    }
-
-    repository.guardarStockMinimo(
-            material,
-            centro,
-            almacen,
-            stockMinimo,
-            usuario);
-}
 }

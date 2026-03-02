@@ -1,44 +1,29 @@
 package com.invertec.stock_web.repository;
 
 import com.invertec.stock_web.model.StockDTO;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Repositorio para operaciones de consulta de stock.
- * 
- * <p>
- * Este repositorio interactúa con la vista `vw_stock_area_final` para obtener
- * información de stock de materiales. Permite:
- * </p>
- * <ul>
- *     <li>Consultar stock filtrado por centro y almacén con paginación.</li>
- *     <li>Contar la cantidad de registros según filtros.</li>
- *     <li>Consultar y contar materiales con stock bajo (menor que el mínimo).</li>
- * </ul>
+ * Repositorio para operaciones de consulta de stock en el dashboard IN01 / 1014
  */
 @Repository
 public class StockRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    /**
-     * Constructor que inyecta el JdbcTemplate para la conexión a base de datos.
-     *
-     * @param jdbcTemplate instancia de JdbcTemplate configurada en Spring
-     */
     public StockRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /**
-     * RowMapper que convierte cada fila de la consulta en un objeto StockDTO.
-     */
     private RowMapper<StockDTO> rowMapper = (rs, rowNum) -> {
         StockDTO s = new StockDTO();
         s.setMatnr(rs.getString("MATNR"));
@@ -52,266 +37,157 @@ public class StockRepository {
         return s;
     };
 
-    /**
-     * Obtiene una lista de StockDTO filtrada por centro, almacén y texto de búsqueda
-     * con paginación.
-     *
-     * @param centro  filtro por centro (opcional)
-     * @param almacen filtro por almacén (opcional)
-     * @param buscar  texto a buscar en MATNR o Descripcion (opcional)
-     * @param pagina  número de página (0-indexado)
-     * @param size    cantidad de registros por página
-     * @return lista de StockDTO que cumplen los filtros y paginación
-     */
-    public List<StockDTO> obtenerFiltradoPaginado(
-            String centro,
-            String almacen,
-            String buscar,
-            int pagina,
-            int size) {
-
-        int offset = pagina * size;
-
-        StringBuilder sql = new StringBuilder("""
-                SELECT *
-                FROM vw_stock_area_final
-                WHERE Centro = 'IN01'
-                AND ALMACEN = '1014'
-                """);
-
-        List<Object> params = new ArrayList<>();
-
-        if (centro != null && !centro.isEmpty()) {
-            sql.append(" AND Centro = ?");
-            params.add(centro);
-        }
-
-        if (almacen != null && !almacen.isEmpty()) {
-            sql.append(" AND Almacen = ?");
-            params.add(almacen);
-        }
-
-        if (buscar != null && !buscar.isEmpty()) {
-            sql.append(" AND (MATNR LIKE ? OR Descripcion LIKE ?)");
-            params.add("%" + buscar + "%");
-            params.add("%" + buscar + "%");
-        }
-
-        sql.append(" ORDER BY MATNR");
-        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-
-        params.add(offset);
-        params.add(size);
-
-        return jdbcTemplate.query(sql.toString(), params.toArray(), rowMapper);
-    }
-
-    /**
-     * Cuenta la cantidad de registros de stock según los filtros proporcionados.
-     *
-     * @param centro  filtro por centro (opcional)
-     * @param almacen filtro por almacén (opcional)
-     * @param buscar  texto a buscar en MATNR o Descripcion (opcional)
-     * @return número total de registros que cumplen los filtros
-     */
-    public int contar(String centro, String almacen, String buscar) {
-
-        StringBuilder sql = new StringBuilder("""
-                SELECT COUNT(*)
-                FROM vw_stock_area_final
-                WHERE 1=1
-                """);
-
-        List<Object> params = new ArrayList<>();
-
-        if (centro != null && !centro.isEmpty()) {
-            sql.append(" AND Centro = ?");
-            params.add(centro);
-        }
-
-        if (almacen != null && !almacen.isEmpty()) {
-            sql.append(" AND Almacen = ?");
-            params.add(almacen);
-        }
-
-        if (buscar != null && !buscar.isEmpty()) {
-            sql.append(" AND (MATNR LIKE ? OR Descripcion LIKE ?)");
-            params.add("%" + buscar + "%");
-            params.add("%" + buscar + "%");
-        }
-
-        return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), Integer.class);
-    }
-
-    /**
-     * Obtiene la lista de StockDTO que tienen stock bajo (StockLibre < stock_minimo)
-     * filtrada por centro y almacén, con paginación.
-     *
-     * @param centro  filtro por centro (opcional)
-     * @param almacen filtro por almacén (opcional)
-     * @param pagina  número de página (0-indexado)
-     * @param size    cantidad de registros por página
-     * @return lista de StockDTO con stock bajo
-     */
-    public List<StockDTO> obtenerStockBajoPaginado(
-            String centro,
-            String almacen,
-            int pagina,
-            int size) {
-
-        int offset = pagina * size;
-
-        StringBuilder sql = new StringBuilder("""
-                SELECT *
-                FROM vw_stock_area_final
-                WHERE stock_minimo IS NOT NULL
-                AND StockLibre < stock_minimo
-                """);
-
-        List<Object> params = new ArrayList<>();
-
-        if (centro != null && !centro.isEmpty()) {
-            sql.append(" AND Centro = ?");
-            params.add(centro);
-        }
-
-        if (almacen != null && !almacen.isEmpty()) {
-            sql.append(" AND Almacen = ?");
-            params.add(almacen);
-        }
-
-        sql.append(" ORDER BY MATNR");
-        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-
-        params.add(offset);
-        params.add(size);
-
-        return jdbcTemplate.query(sql.toString(), params.toArray(), rowMapper);
-    }
-public List<StockDTO> obtenerStockBajoFiltrado(
-        String centro,
-        String almacen) {
-
-    StringBuilder sql = new StringBuilder("""
-            SELECT *
+    // ------------------- AUTOCOMPLETE -------------------
+    public List<Map<String, Object>> buscarCoincidenciasRapidas(String centro, String almacen, String buscar, int size) {
+        String sql = """
+            SELECT MATNR, Descripcion, ROW_NUMBER() OVER(ORDER BY MATNR) AS fila
             FROM vw_stock_area_final
-            WHERE stock_minimo IS NOT NULL
-            AND StockLibre < stock_minimo
-            """);
+            WHERE Centro = ? AND Almacen = ?
+            AND (MATNR LIKE ? OR Descripcion LIKE ?)
+            """;
 
-    List<Object> params = new ArrayList<>();
+        String like = "%" + buscar + "%";
+        List<Object> params = List.of(centro, almacen, like, like);
 
-    if (centro != null && !centro.isEmpty()) {
-        sql.append(" AND Centro = ?");
-        params.add(centro);
+        List<Map<String, Object>> resultados = jdbcTemplate.query(sql, params.toArray(), (rs, rowNum) -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("matnr", rs.getString("MATNR"));
+            map.put("descripcion", rs.getString("Descripcion"));
+            map.put("fila", rs.getInt("fila"));
+            return map;
+        });
+
+        return resultados.size() > size ? resultados.subList(0, size) : resultados;
     }
 
-    if (almacen != null && !almacen.isEmpty()) {
-        sql.append(" AND Almacen = ?");
-        params.add(almacen);
-    }
-
-    sql.append(" ORDER BY MATNR");
-
-    return jdbcTemplate.query(sql.toString(), params.toArray(), rowMapper);
-}
-    /**
-     * Cuenta la cantidad de registros con stock bajo según centro y almacén.
-     *
-     * @param centro  filtro por centro (opcional)
-     * @param almacen filtro por almacén (opcional)
-     * @return número total de registros con stock bajo
-     */
-    public int contarStockBajo(String centro, String almacen) {
-
+    // ------------------- STOCK FILTRADO -------------------
+    public List<StockDTO> obtenerFiltradoDashboard(String buscar) {
         StringBuilder sql = new StringBuilder("""
-                SELECT COUNT(*)
+                SELECT *
                 FROM vw_stock_area_final
-                WHERE stock_minimo IS NOT NULL
-                AND StockLibre < stock_minimo
                 """);
 
         List<Object> params = new ArrayList<>();
-
-        if (centro != null && !centro.isEmpty()) {
-            sql.append(" AND Centro = ?");
-            params.add(centro);
+        if (buscar != null && !buscar.isEmpty()) {
+            sql.append(" AND (MATNR LIKE ? OR Descripcion LIKE ?)");
+            String like = "%" + buscar + "%";
+            params.add(like);
+            params.add(like);
         }
 
-        if (almacen != null && !almacen.isEmpty()) {
-            sql.append(" AND Almacen = ?");
-            params.add(almacen);
+        sql.append(" ORDER BY MATNR");
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), rowMapper);
+    }
+
+    public List<StockDTO> obtenerFiltradoPaginadoDashboard(String buscar, int pagina, int size) {
+        int offset = pagina * size;
+
+        StringBuilder sql = new StringBuilder("""
+                SELECT *
+                FROM vw_stock_area_final
+                """);
+
+        List<Object> params = new ArrayList<>();
+        if (buscar != null && !buscar.isEmpty()) {
+            sql.append(" AND (MATNR LIKE ? OR Descripcion LIKE ?)");
+            String like = "%" + buscar + "%";
+            params.add(like);
+            params.add(like);
+        }
+
+        sql.append(" ORDER BY MATNR OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add(offset);
+        params.add(size);
+
+        return jdbcTemplate.query(sql.toString(), params.toArray(), rowMapper);
+    }
+
+    public int contarDashboard(String buscar) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT COUNT(*)
+                FROM vw_stock_area_final
+                """);
+
+        List<Object> params = new ArrayList<>();
+        if (buscar != null && !buscar.isEmpty()) {
+            sql.append(" AND (MATNR LIKE ? OR Descripcion LIKE ?)");
+            String like = "%" + buscar + "%";
+            params.add(like);
+            params.add(like);
         }
 
         return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), Integer.class);
     }
 
-        /**
-     * Suma el valor total de los productos que están bajo stock mínimo,
-     * filtrando por centro y almacén si se proporcionan.
-     *
-     * @param centro  filtro por centro (opcional)
-     * @param almacen filtro por almacén (opcional)
-     * @return suma de ValorTotal de productos bajo stock mínimo
-     */
-    public BigDecimal sumarValorTotalAlertas(String centro, String almacen) {
+    // ------------------- STOCK BAJO -------------------
+    public List<StockDTO> obtenerStockBajoDashboard() {
+        String sql = """
+                SELECT *
+                FROM vw_stock_area_final
+                WHERE stock_minimo IS NOT NULL
+                AND StockLibre < stock_minimo
+                ORDER BY MATNR
+                """;
 
-        StringBuilder sql = new StringBuilder("""
+        return jdbcTemplate.query(sql, rowMapper);
+    }
+
+    public List<StockDTO> obtenerStockBajoPaginadoDashboard(int pagina, int size) {
+        int offset = pagina * size;
+        String sql = """
+                SELECT *
+                FROM vw_stock_area_final
+                WHERE stock_minimo IS NOT NULL
+                AND StockLibre < stock_minimo
+                ORDER BY MATNR
+                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                """;
+
+        return jdbcTemplate.query(sql, new Object[]{offset, size}, rowMapper);
+    }
+
+    public int contarStockBajoDashboard() {
+        String sql = """
+                SELECT COUNT(*)
+                FROM vw_stock_area_final
+                WHERE
+                stock_minimo IS NOT NULL
+                AND StockLibre < stock_minimo
+                """;
+
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
+    public BigDecimal sumarValorTotalAlertasDashboard() {
+        String sql = """
                 SELECT SUM(ValorTotal)
                 FROM vw_stock_area_final
                 WHERE stock_minimo IS NOT NULL
                 AND StockLibre < stock_minimo
-                """);
+                """;
 
-        List<Object> params = new ArrayList<>();
-
-        if (centro != null && !centro.isEmpty()) {
-            sql.append(" AND Centro = ?");
-            params.add(centro);
-        }
-
-        if (almacen != null && !almacen.isEmpty()) {
-            sql.append(" AND Almacen = ?");
-            params.add(almacen);
-        }
-        BigDecimal total = jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
-        return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class);
     }
-    public void guardarStockMinimo(String material,
-                                String centro,
-                                String almacen,
-                                BigDecimal stockMinimo,
-                                String usuario) {
 
+    // ------------------- STOCK MINIMO -------------------
+    public void guardarStockMinimo(String material, BigDecimal stockMinimo, String usuario) {
         String sql = """
-            INSERT INTO dbo.stock_minimo_historial
-            (material, centro, almacen, stock_minimo, usuario, fecha_modificacion)
-            VALUES (?, ?, ?, ?, ?, GETDATE())
-            """;
+                INSERT INTO dbo.stock_minimo_historial
+                (material, centro, almacen, stock_minimo, usuario, fecha_modificacion)
+                VALUES (?, '?', '?', ?, ?, GETDATE())
+                """;
 
-        jdbcTemplate.update(sql,material,centro,almacen,stockMinimo,usuario);
-    }
-    public BigDecimal sumarValorTotal(String centro, String almacen) {
-
-    StringBuilder sql = new StringBuilder("""
-            SELECT SUM(ValorTotal)
-            FROM vw_stock_area_final
-            WHERE 1=1
-            """);
-
-    List<Object> params = new ArrayList<>();
-
-    if (centro != null) {
-        sql.append(" AND Centro = ?");
-        params.add(centro);
+        jdbcTemplate.update(sql, material, stockMinimo, usuario);
     }
 
-    if (almacen != null) {
-        sql.append(" AND Almacen = ?");
-        params.add(almacen);
-    }
+    public BigDecimal sumarValorTotalDashboard() {
+        String sql = """
+                SELECT SUM(ValorTotal)
+                FROM vw_stock_area_final
+                """;
 
-    return jdbcTemplate.queryForObject(sql.toString(), params.toArray(), BigDecimal.class);
-}
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class);
+    }
 
 }
