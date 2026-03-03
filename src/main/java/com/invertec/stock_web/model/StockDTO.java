@@ -11,6 +11,7 @@ public class StockDTO {
     private BigDecimal stockLibre;
     private BigDecimal precio;
     private BigDecimal valorTotal;
+    private String area;
     private BigDecimal stockMinimo;
 
     // Getters y Setters
@@ -34,6 +35,9 @@ public class StockDTO {
 
     public BigDecimal getValorTotal() { return valorTotal; }
     public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
+
+    public String getArea() { return area; }
+    public void setArea(String area) { this.area = area; }
 
     public BigDecimal getStockMinimo() { return stockMinimo; }
     public void setStockMinimo(BigDecimal stockMinimo) { this.stockMinimo = stockMinimo; }

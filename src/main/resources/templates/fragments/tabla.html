@@ -1,30 +1,88 @@
 <div th:fragment="tablaFragment">
-
     <div class="table-responsive">
         <table class="table table-modern table-hover">
             <thead>
-            <tr>
-                <th>Material</th>
-                <th>Descripción</th>
-                <th>Centro</th>
-                <th>Almacén</th>
-                <th>Stock</th>
-                <th>Mínimo</th>
-                <th>Valor Total</th>
-            </tr>
+                <tr>
+                    <th>Material</th>
+                    <th>Descripción</th>
+                    <th>Centro</th>
+                    <th>Almacén</th>
+                    <th>Área</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Valor Total</th>
+                </tr>
             </thead>
             <tbody>
-            <tr th:each="item : ${stocks}">
-                <td th:text="${item.matnr}"></td>
-                <td th:text="${item.descripcion}"></td>
-                <td th:text="${item.centro}"></td>
-                <td th:text="${item.almacen}"></td>
-                <td th:text="${item.stockLibre}"></td>
-                <td th:text="${item.stockMinimo}"></td>
-                <td th:text="${item.valorTotal}"></td>
-            </tr>
+                <tr th:each="item : ${stocks}" 
+                    th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
+
+                    <td th:text="${item.matnr}"></td>
+                    <td th:text="${item.descripcion}"></td>
+                    <td th:text="${item.centro}"></td>
+                    <td th:text="${item.almacen}"></td>
+                    <td th:text="${item.area}"></td>
+                    <td th:text="${item.stockLibre}"></td>
+
+                    <td style="width:120px;">
+                        <div class="stock-minimo-wrapper">
+                            <div class="modo-lectura d-flex justify-content-end align-items-center gap-2">
+                                <span th:text="${item.stockMinimo != null ? item.stockMinimo : '-'}"></span>
+                                <i class="bi bi-pencil-square editar-minimo text-primary"></i>
+                            </div>
+
+                            <form class="modo-edicion d-none">
+                                <input type="hidden" name="material" th:value="${item.matnr}">
+                                <input type="hidden" name="centro" th:value="${item.centro}">
+                                <input type="hidden" name="almacen" th:value="${item.almacen}">
+                                <div class="d-flex gap-1 justify-content-end align-items-center">
+                                    <input type="number"
+                                           step="0.01"
+                                           name="stockMinimo"
+                                           class="form-control form-control-sm text-end input-minimo"
+                                           th:value="${item.stockMinimo}" required>
+                                    <button type="submit" class="btn btn-success btn-sm px-2">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm px-2 cancelar-edicion">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </td>
+
+                    <td th:text="${item.valorTotal}"></td>
+                </tr>
             </tbody>
         </table>
     </div>
 
+    <!-- Paginación -->
+    <nav th:if="${totalPaginas > 1}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${paginaActual == 0} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/(pagina=${paginaActual - 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado}, area=${areaSeleccionada})}">
+                    «
+                </a>
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(T(java.lang.Math).max(0, paginaActual - 2), T(java.lang.Math).min(totalPaginas - 1, paginaActual + 2))}"
+                th:classappend="${i == paginaActual} ? 'active'">
+                <a class="page-link"
+                   th:text="${i + 1}"
+                   th:href="@{/(pagina=${i}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado}, area=${areaSeleccionada})}">
+                </a>
+            </li>
+
+            <li class="page-item" th:classappend="${paginaActual + 1 >= totalPaginas} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/(pagina=${paginaActual + 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado}, area=${areaSeleccionada})}">
+                    »
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>

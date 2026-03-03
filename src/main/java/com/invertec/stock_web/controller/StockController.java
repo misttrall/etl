@@ -23,52 +23,60 @@ public class StockController {
 
     @GetMapping("/")
     public String listarStock(@RequestParam(required = false) String buscar,
+                              @RequestParam(required = false) String centro,
+                              @RequestParam(required = false) String almacen,
+                              @RequestParam(required = false) String area,
                               @RequestParam(defaultValue = "0") int pagina,
                               Model model) {
 
-        Map<String, Object> data = service.obtenerPaginado(buscar, pagina, 50);
+        Map<String, Object> data = service.obtenerPaginado(buscar, centro, almacen, area, pagina, 50);
         model.addAllAttributes(data);
 
-        model.addAttribute("totalMateriales", service.buscarTodos(buscar).size());
-        model.addAttribute("totalAlertas", service.contarTotalAlertas());
-        model.addAttribute("valorTotalInventario", service.obtenerValorTotalInventario());
+        model.addAttribute("totalMateriales", service.buscarTodos(buscar, centro, almacen, area).size());
+        model.addAttribute("totalAlertas", service.contarTotalAlertas(centro, almacen));
+        model.addAttribute("valorTotalInventario", service.obtenerValorTotalInventario(centro, almacen));
         model.addAttribute("modo", "normal");
+
+        model.addAttribute("areasDisponibles", service.obtenerAreasDisponibles(centro, almacen));
+        model.addAttribute("areaSeleccionada", area);
+        model.addAttribute("centroSeleccionado", centro);
+        model.addAttribute("almacenSeleccionado", almacen);
+        model.addAttribute("buscar", buscar);
 
         return "stock";
     }
 
-    @GetMapping("/stock/buscar")
-    public String buscarStockAjax(@RequestParam(required = false) String buscar,
-                                  Model model) {
-        List<StockDTO> lista = service.buscarTodos(buscar);
-        model.addAttribute("stocks", lista);
-        model.addAttribute("totalPaginas", 1);
-        model.addAttribute("paginaActual", 0);
-        return "fragments/tabla :: tablaFragment";
-    }
-
-    @PostMapping("/stock/minimo")
-    @ResponseBody
-    public ResponseEntity<?> actualizarStockMinimo(@RequestParam String material,
-                                                   @RequestParam BigDecimal stockMinimo,
-                                                   Principal principal) {
-        String usuario = principal != null ? principal.getName() : "sistema";
-        service.actualizarStockMinimo(material, stockMinimo, usuario);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/tabla")
     public String obtenerTablaParcial(@RequestParam(required = false) String buscar,
+                                      @RequestParam(required = false) String centro,
+                                      @RequestParam(required = false) String almacen,
+                                      @RequestParam(required = false) String area,
                                       @RequestParam(defaultValue = "0") int pagina,
                                       Model model) {
-        Map<String, Object> data = service.obtenerPaginado(buscar, pagina, 50);
+
+        Map<String, Object> data = service.obtenerPaginado(buscar, centro, almacen, area, pagina, 50);
         model.addAllAttributes(data);
         return "fragments/tabla :: tablaFragment";
     }
 
     @GetMapping("/stock/autocomplete")
     @ResponseBody
-    public List<Map<String, Object>> autocomplete(@RequestParam String buscar) {
-        return service.buscarCoincidenciasRapidas(buscar);
+    public List<Map<String, Object>> autocomplete(@RequestParam String buscar,
+                                                  @RequestParam(required = false) String centro,
+                                                  @RequestParam(required = false) String almacen,
+                                                  @RequestParam(required = false) String area) {
+        return service.buscarCoincidenciasRapidas(buscar, centro, almacen, area);
+    }
+
+    @PostMapping("/stock/minimo")
+    @ResponseBody
+    public ResponseEntity<?> actualizarStockMinimo(@RequestParam String material,
+                                                   @RequestParam BigDecimal stockMinimo,
+                                                   @RequestParam(required = false) String centro,
+                                                   @RequestParam(required = false) String almacen,
+                                                   Principal principal) {
+        String usuario = principal != null ? principal.getName() : "sistema";
+        service.actualizarStockMinimo(material, stockMinimo, usuario, centro, almacen);
+        return ResponseEntity.ok().build();
     }
 }

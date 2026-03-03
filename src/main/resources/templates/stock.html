@@ -2,7 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Dashboard - Stock SAP</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -10,15 +9,15 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
-
 <body>
 
 <div class="container container-dashboard">
 
     <h2 class="mb-4">Dashboard Inventario</h2>
 
+    <!-- Cards -->
     <div class="row g-3 mb-4">
-
+        <!-- Total Materiales -->
         <div class="col-md-3">
             <div class="card-widget card-primary">
                 <i class="bi bi-box-seam icon"></i>
@@ -29,6 +28,7 @@
             </div>
         </div>
 
+        <!-- Materiales Bajo Mínimo -->
         <div class="col-md-3">
             <div class="card-widget card-danger">
                 <i class="bi bi-exclamation-triangle icon"></i>
@@ -39,6 +39,7 @@
             </div>
         </div>
 
+        <!-- Valor Total Inventario -->
         <div class="col-md-3">
             <div class="card-widget card-success">
                 <i class="bi bi-currency-dollar icon"></i>
@@ -49,149 +50,56 @@
             </div>
         </div>
 
+        <!-- Botón Sincronizar -->
         <div class="col-md-3 d-flex align-items-stretch">
             <button id="btn-sync" class="btn btn-dark w-100">
                 <i class="bi bi-arrow-clockwise me-2"></i> Sincronizar Tabla
             </button>
         </div>
-
     </div>
 
+    <!-- Filtros -->
     <form method="get" th:action="@{/}" class="row g-3 mb-4 filters">
-
         <div class="col-md-3">
-            <input type="text" name="centro" class="form-control"
-                   placeholder="Área (Ej: IN01)"
-                   th:value="${centroSeleccionado}">
+            <input type="text" name="centro" class="form-control" placeholder="Área (Ej: IN01)" th:value="${centroSeleccionado}">
         </div>
 
         <div class="col-md-3">
-            <input type="text" name="almacen" class="form-control"
-                   placeholder="Almacén (Ej: 1014)"
-                   th:value="${almacenSeleccionado}">
+            <input type="text" name="almacen" class="form-control" placeholder="Almacén (Ej: 1014)" th:value="${almacenSeleccionado}">
         </div>
 
         <div class="col-md-3 position-relative">
-            <input type="text" name="buscar" id="buscador"
-                   class="form-control"
-                   placeholder="Buscar material o descripción"
-                   th:value="${buscar}">
+            <div class="custom-dropdown">
+                <div class="custom-dropdown-display" id="areaDisplay">
+                    <span th:text="${areaSeleccionada != null ? areaSeleccionada : 'Todas las áreas'}"></span>
+                    <i class="bi bi-caret-down-fill"></i>
+                </div>
+                <ul class="custom-dropdown-options" id="areaOptions">
+                    <li th:each="a : ${areasDisponibles}" 
+                        th:text="${a}" 
+                        th:data-value="${a}" 
+                        th:classappend="${a == areaSeleccionada} ? 'selected' : ''">
+                    </li>
+                    <li data-value="" th:if="${areaSeleccionada == null}" class="selected">Todas las áreas</li>
+                </ul>
+                <input type="hidden" name="area" id="areaInput" th:value="${areaSeleccionada}">
+            </div>
+        </div>
+        <div class="col-md-3 position-relative">
+            <input type="text" name="buscar" id="buscador" class="form-control" placeholder="Buscar material o descripción" th:value="${buscar}">
         </div>
 
-        <div class="col-md-3 d-flex gap-2">
+        <div class="col-md-12 d-flex gap-2">
             <button type="submit" class="btn btn-primary flex-fill">Filtrar</button>
             <a th:href="@{/alertas}" class="btn btn-danger flex-fill">Ver Alertas</a>
         </div>
-
     </form>
 
-    <div id="tabla-container">
-        <div class="table-responsive">
-            <table class="table table-modern table-hover">
-
-                <thead>
-                <tr>
-                    <th>Material</th>
-                    <th>Descripción</th>
-                    <th>Centro</th>
-                    <th>Almacén</th>
-                    <th>Stock</th>
-                    <th>Mínimo</th>
-                    <th>Valor Total</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                <tr th:each="item : ${stocks}"
-                    th:classappend="${item.stockMinimo != null and item.stockLibre < item.stockMinimo} ? 'table-danger'">
-
-                    <td th:text="${item.matnr}"></td>
-                    <td th:text="${item.descripcion}"></td>
-                    <td th:text="${item.centro}"></td>
-                    <td th:text="${item.almacen}"></td>
-                    <td th:text="${item.stockLibre}"></td>
-
-                    <td style="width:120px;">
-                        <div class="stock-minimo-wrapper">
-
-                            <div class="modo-lectura d-flex justify-content-end align-items-center gap-2">
-                                <span th:text="${item.stockMinimo != null ? item.stockMinimo : '-'}"></span>
-                                <i class="bi bi-pencil-square editar-minimo text-primary"></i>
-                            </div>
-
-                            <form class="modo-edicion d-none">
-                                <input type="hidden" name="material" th:value="${item.matnr}">
-                                <input type="hidden" name="centro" th:value="${item.centro}">
-                                <input type="hidden" name="almacen" th:value="${item.almacen}">
-
-                                <div class="d-flex gap-1 justify-content-end align-items-center">
-                                    <input type="number"
-                                           step="0.01"
-                                           name="stockMinimo"
-                                           class="form-control form-control-sm text-end input-minimo"
-                                           th:value="${item.stockMinimo}"
-                                           required>
-
-                                    <button type="submit" class="btn btn-success btn-sm px-2">
-                                        <i class="bi bi-check"></i>
-                                    </button>
-
-                                    <button type="button"
-                                            class="btn btn-outline-secondary btn-sm px-2 cancelar-edicion">
-                                        <i class="bi bi-x"></i>
-                                    </button>
-                                </div>
-                            </form>
-
-                        </div>
-                    </td>
-
-                    <td th:text="${item.valorTotal}"></td>
-
-                </tr>
-                </tbody>
-
-            </table>
-        </div>
-
-        <nav th:if="${totalPaginas > 1}" class="mt-4">
-            <ul class="pagination justify-content-center">
-
-                <li class="page-item"
-                    th:classappend="${paginaActual == 0} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{/(pagina=${paginaActual - 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-                        «
-                    </a>
-                </li>
-
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(
-                        T(java.lang.Math).max(0, paginaActual - 2),
-                        T(java.lang.Math).min(totalPaginas - 1, paginaActual + 2)
-                    )}"
-                    th:classappend="${i == paginaActual} ? 'active'">
-
-                    <a class="page-link"
-                       th:text="${i + 1}"
-                       th:href="@{/(pagina=${i}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-                    </a>
-                </li>
-
-                <li class="page-item"
-                    th:classappend="${paginaActual + 1 >= totalPaginas} ? 'disabled'">
-                    <a class="page-link"
-                       th:href="@{/(pagina=${paginaActual + 1}, buscar=${buscar}, centro=${centroSeleccionado}, almacen=${almacenSeleccionado})}">
-                        »
-                    </a>
-                </li>
-
-            </ul>
-        </nav>
-
-    </div>
+    <!-- Contenedor de tabla -->
+    <div id="tabla-container" th:replace="~{fragments/tabla :: tablaFragment}"></div>
 
 </div>
+
 <script th:src="@{/js/stock.js}"></script>
 </body>
 </html>

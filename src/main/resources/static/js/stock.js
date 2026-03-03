@@ -157,3 +157,32 @@ document.addEventListener("click", function (e) {
         if (lista) lista.remove();
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const display = document.getElementById('areaDisplay');
+    const options = document.getElementById('areaOptions');
+    const input = document.getElementById('areaInput');
+
+    display.addEventListener('click', () => {
+        options.style.display = options.style.display === 'block' ? 'none' : 'block';
+    });
+
+    options.querySelectorAll('li').forEach(li => {
+        li.addEventListener('click', () => {
+            input.value = li.dataset.value;
+            display.querySelector('span').textContent = li.textContent;
+
+            options.querySelectorAll('li').forEach(x => x.classList.remove('selected'));
+            li.classList.add('selected');
+
+            options.style.display = 'none';
+        });
+    });
+
+    // Cierra si clic fuera
+    document.addEventListener('click', (e) => {
+        if (!display.parentNode.contains(e.target)) {
+            options.style.display = 'none';
+        }
+    });
+});
